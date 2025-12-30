@@ -1,528 +1,466 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CryptoVault V6 Real-Active</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول</title>
     <style>
-        :root {
-            --primary: #00d4aa;
-            --bg: #0a0e17;
-            --card: #13192b;
-            --text: #ffffff;
-            --danger: #ff7675;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .theme-blue { --primary: #2980b9; }
-        .theme-gold { --primary: #f1c40f; }
-        .theme-purple { --primary: #9b59b6; }
-        .theme-red { --primary: #e74c3c; }
-
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; font-family: 'Cairo', sans-serif; background-color: #000; color: white; overflow-x: hidden; }
-
-        #root {
-            width: 100%; max-width: 480px; margin: 0 auto; background-color: var(--bg); position: relative;
-            min-height: 100vh; padding-bottom: 110px;
-            box-shadow: 0 0 20px rgba(255,255,255,0.05);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
-        /* Animations */
-        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        .slide-in { animation: slideIn 0.2s ease-out forwards; }
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
-        .modal-content { background: #1a2238; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; border-top: 1px solid rgba(255,255,255,0.1); max-height: 80vh; overflow-y: auto; }
-        .modal-center { align-items: center; }
-        .modal-center .modal-content { border-radius: 24px; width: 90%; max-width: 340px; }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-        .btn-primary { background: var(--primary); color: #000; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .btn-primary:active { transform: scale(0.95); }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-        .story-ring { width: 64px; height: 64px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .story-img { width: 100%; height: 100%; background: #2d3446; border-radius: 50%; border: 3px solid var(--bg); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            margin-bottom: 15px;
+        }
 
-        .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--primary); transition: 0.2s; }
-        .pin-dot.filled { background: var(--primary); }
-        .num-pad-btn { width: 70px; height: 70px; border-radius: 35px; background: rgba(255,255,255,0.05); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
 
-        .scroll-hide::-webkit-scrollbar { display: none; }
-        .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        input, select, textarea { width: 100%; padding: 15px; border-radius: 12px; background: #0a0e17; border: 1px solid #333; color: white; margin-bottom: 15px; font-family: inherit; font-size: 16px; }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 18px;
+            padding: 5px;
+        }
+
+        .toggle-password:hover {
+            color: #667eea;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #764ba2;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .social-btn {
+            padding: 12px 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .social-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .social-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .signup-link {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .success-message,
+        .error-message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .social-login {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">🔐</div>
+            <h1>مرحباً بك</h1>
+            <p class="subtitle">قم بتسجيل الدخول للمتابعة</p>
+        </div>
 
-    <div id="root"></div>
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-
-        function CryptoVaultV6() {
-            // --- Core State ---
-            const [isLocked, setIsLocked] = useState(true);
-            const [pin, setPin] = useState('');
-            const [activeTab, setActiveTab] = useState('home');
-            const [subView, setSubView] = useState(null); // The Key Change: Tracks internal navigation
-            const [balance, setBalance] = useState(1250.00);
-            const [theme, setTheme] = useState('');
-            const [showBalance, setShowBalance] = useState(true);
-            const [energy, setEnergy] = useState(100);
-
-            // --- Features State ---
-            const [modal, setModal] = useState(null);
-            const [toast, setToast] = useState(null);
-            const [inputValue, setInputValue] = useState('');
-            
-            const navRef = useRef(null);
-
-            // --- Data ---
-            const tabs = [
-                { id: 'home', icon: '🏠', label: 'الرئيسية' },
-                { id: 'market', icon: '📊', label: 'السوق' },
-                { id: 'trade', icon: '🔁', label: 'تداول' },
-                { id: 'invest', icon: '💰', label: 'استثمار' },
-                { id: 'shop', icon: '🛒', label: 'المتجر' },
-                { id: 'wallet', icon: '💼', label: 'محفظة' },
-                { id: 'learn', icon: '🎓', label: 'تعلم' },
-                { id: 'community', icon: '🌍', label: 'مجتمع' },
-                { id: 'rewards', icon: '🎁', label: 'جوائز' },
-                { id: 'tools', icon: '🛠️', label: 'أدوات' },
-            ];
-
-            const features = {
-                market: [
-                    { t: 'أسعار حية', i: '📈', id: 'market_live' }, { t: 'الرابحون', i: '🚀', id: 'market_gainers' }, { t: 'خريطة حرارية', i: '🗺️', id: 'market_map' }, { t: 'أخبار عالمية', i: '📰', id: 'market_news' }
-                ],
-                trade: [
-                    { t: 'تحويل فوري', i: '💱', id: 'trade_swap' }, { t: 'تداول الهامش', i: '🎢', id: 'trade_margin' }, { t: 'بوت التداول', i: '🤖', id: 'trade_bot' }, { t: 'عقود آجلة', i: '⏳', id: 'trade_futures' }
-                ],
-                invest: [
-                    { t: 'التخزين (Staking)', i: '🔒', id: 'invest_stake' }, { t: 'تعدين سحابي', i: '☁️', id: 'invest_mine' }, { t: 'اكتتابات', i: '🆕', id: 'invest_ipo' }, { t: 'ادخار آلي', i: '🐖', id: 'invest_save' }
-                ],
-                shop: [
-                    { t: 'بطاقات هدايا', i: '💳', id: 'shop_cards' }, { t: 'منتجات المحل', i: '👕', id: 'shop_items' }, { t: 'محافظ باردة', i: '🔐', id: 'shop_hw' }, { t: 'شراء VPN', i: '🛡️', id: 'shop_vpn' }
-                ],
-                wallet: [
-                    { t: 'الأصول', i: '💵', id: 'wallet_assets' }, { t: 'معرض NFT', i: '🖼️', id: 'wallet_nft' }, { t: 'العناوين', i: '📒', id: 'wallet_addr' }, { t: 'تاريخ', i: '📜', id: 'wallet_hist' }
-                ],
-                learn: [
-                    { t: 'أكاديمية', i: '🏫', id: 'learn_acad' }, { t: 'مسابقات', i: '📝', id: 'learn_quiz' }, { t: 'قاموس', i: '📖', id: 'learn_dict' }, { t: 'ندوات', i: '📹', id: 'learn_vid' }
-                ],
-                community: [
-                    { t: 'شات عام', i: '💬', id: 'comm_chat' }, { t: 'منتديات', i: '📢', id: 'comm_forum' }, { t: 'تصويت', i: '🗳️', id: 'comm_vote' }, { t: 'فعاليات', i: '🎉', id: 'comm_event' }
-                ],
-                rewards: [
-                    { t: 'مهام يومية', i: '✅', id: 'rew_tasks' }, { t: 'عجلة الحظ', i: '🎡', id: 'rew_wheel' }, { t: 'إحالات', i: '👥', id: 'rew_ref' }, { t: 'توزيعات', i: '🪂', id: 'rew_drop' }
-                ],
-                tools: [
-                    { t: 'حاسبة ضرائب', i: '🧮', id: 'tool_tax' }, { t: 'منبه أسعار', i: '⏰', id: 'tool_alarm' }, { t: 'محول عملات', i: '🔄', id: 'tool_conv' }, { t: 'قائمة مراقبة', i: '👀', id: 'tool_watch' }
-                ]
-            };
-
-            // --- Effects ---
-            useEffect(() => {
-                let shakeHandler = () => setShowBalance(prev => !prev);
-                window.addEventListener('devicemotion', (e) => {
-                    if (e.acceleration.x > 15) shakeHandler();
-                });
-                
-                const timer = setInterval(() => setEnergy(e => e < 100 ? e + 0.5 : 100), 1000);
-                
-                if (navRef.current) {
-                    setTimeout(() => {
-                        navRef.current.scrollBy({ left: -100, behavior: 'smooth' });
-                        setTimeout(() => { navRef.current.scrollBy({ left: 100, behavior: 'smooth' }); }, 800);
-                    }, 1500);
-                }
-                return () => clearInterval(timer);
-            }, []);
-
-            // --- Logic ---
-            const showToast = (msg, icon='✅') => {
-                setToast({msg, icon});
-                if(navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => setToast(null), 3000);
-            };
-
-            const handleTabClick = (tabId) => {
-                setActiveTab(tabId);
-                setSubView(null); // Reset subview when changing main tabs
-                window.scrollTo({top:0, behavior:'smooth'});
-            };
-
-            const handlePin = (num) => {
-                if (pin.length < 4) {
-                    const newPin = pin + num;
-                    setPin(newPin);
-                    if (newPin === '1234') setTimeout(() => setIsLocked(false), 300);
-                    else if (newPin.length === 4) setTimeout(() => { setPin(''); showToast('رمز خاطئ!', '❌'); }, 300);
-                }
-            };
-
-            const handleTheme = (colorClass) => {
-                setTheme(colorClass);
-                document.documentElement.className = colorClass;
-            };
-
-            // --- RENDER CONTENT LOGIC ---
-            // This function renders the specific "Real" content for each subview
-            const renderSubViewContent = () => {
-                if (!subView) return null;
-
-                const commonBack = (
-                    <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:20, cursor:'pointer'}} onClick={() => setSubView(null)}>
-                        <div style={{fontSize:24, color:'var(--primary)'}}>➜</div>
-                        <h2 style={{margin:0}}>{subView.title}</h2>
-                    </div>
-                );
-
-                const btnAction = (msg) => {
-                    setBalance(b => b - 10); // Simulation of cost
-                    showToast(msg || 'تم تنفيذ العملية بنجاح', '✅');
-                    setSubView(null);
-                };
-
-                return (
-                    <div className="slide-in" style={{minHeight:'60vh'}}>
-                        {commonBack}
-                        
-                        {/* Dynamic Form Generation based on ID */}
-                        <div className="glass" style={{padding:20, borderRadius:20}}>
-                            
-                            {/* MARKET VIEWS */}
-                            {subView.id.includes('market') && (
-                                <div>
-                                    {subView.id === 'market_news' ? (
-                                        [1,2,3].map(i => <div key={i} style={{borderBottom:'1px solid #333', paddingBottom:10, marginBottom:10}}>
-                                            <div style={{fontWeight:'bold'}}>تقرير السوق اليومي {i}</div>
-                                            <div style={{fontSize:12, color:'#888'}}>تحديث هام بخصوص العملات الرقمية...</div>
-                                        </div>)
-                                    ) : (
-                                        <>
-                                            <div style={{display:'flex', justifyContent:'space-between', marginBottom:10}}><span>BTC/USDT</span><span style={{color:'var(--primary)'}}>$43,500</span></div>
-                                            <div style={{display:'flex', justifyContent:'space-between', marginBottom:10}}><span>ETH/USDT</span><span style={{color:'var(--danger)'}}>$2,240</span></div>
-                                            <button className="btn-primary" style={{width:'100%', padding:12, borderRadius:10, marginTop:10}} onClick={()=>btnAction('تم تحديث البيانات')}>تحديث الأسعار</button>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* TRADE VIEWS */}
-                            {subView.id.includes('trade') && (
-                                <div>
-                                    <label>الزوج</label>
-                                    <select><option>BTC/USDT</option><option>ETH/USDT</option></select>
-                                    <label>الكمية</label>
-                                    <input type="number" placeholder="0.00" />
-                                    {subView.id === 'trade_margin' && <><label>الرافعة المالية</label><input type="range" min="1" max="100" /></>}
-                                    <div style={{display:'flex', gap:10}}>
-                                        <button className="btn-primary" style={{flex:1, padding:12, borderRadius:10}} onClick={()=>btnAction('تم وضع طلب الشراء')}>شراء 🟢</button>
-                                        <button style={{flex:1, padding:12, borderRadius:10, background:'#ff7675', border:'none', color:'#fff', fontWeight:'bold'}} onClick={()=>btnAction('تم وضع طلب البيع')}>بيع 🔴</button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* INVEST VIEWS */}
-                            {subView.id.includes('invest') && (
-                                <div>
-                                    <label>{subView.id === 'invest_mine' ? 'قوة التعدين (TH/s)' : 'المبلغ للاستثمار'}</label>
-                                    <input type="number" placeholder="1000" />
-                                    <label>المدة (أيام)</label>
-                                    <div style={{display:'flex', gap:10, marginBottom:15}}>
-                                        <button style={{flex:1, padding:10, background:'#0a0e17', border:'1px solid #333', color:'#fff', borderRadius:8}}>30</button>
-                                        <button style={{flex:1, padding:10, background:'var(--primary)', border:'none', color:'#000', borderRadius:8}}>60</button>
-                                        <button style={{flex:1, padding:10, background:'#0a0e17', border:'1px solid #333', color:'#fff', borderRadius:8}}>90</button>
-                                    </div>
-                                    <button className="btn-primary" style={{width:'100%', padding:15, borderRadius:12}} onClick={()=>btnAction('تم بدء الخطة بنجاح')}>تأكيد الاستثمار</button>
-                                </div>
-                            )}
-
-                            {/* SHOP VIEWS */}
-                            {subView.id.includes('shop') && (
-                                <div>
-                                    <div style={{textAlign:'center', marginBottom:20, fontSize:50}}>🛍️</div>
-                                    <label>اختر المنتج</label>
-                                    <select>
-                                        <option>بطاقة $50</option>
-                                        <option>بطاقة $100</option>
-                                    </select>
-                                    <label>البريد الإلكتروني للاستلام</label>
-                                    <input type="email" placeholder="name@example.com" />
-                                    <button className="btn-primary" style={{width:'100%', padding:15, borderRadius:12}} onClick={()=>btnAction('تم الشراء! تفقد بريدك')}>شراء الآن</button>
-                                </div>
-                            )}
-
-                            {/* WALLET & TOOLS VIEWS */}
-                            {(subView.id.includes('wallet') || subView.id.includes('tool')) && (
-                                <div>
-                                    <label>بحث / إدخال</label>
-                                    <input type="text" placeholder="..." />
-                                    <div style={{background:'#0a0e17', padding:15, borderRadius:10, marginBottom:15}}>
-                                        نتيجة: <span style={{color:'var(--primary)'}}>بيانات محدثة</span>
-                                    </div>
-                                    <button className="btn-primary" style={{width:'100%', padding:15, borderRadius:12}} onClick={()=>btnAction('تم الحفظ')}>تنفيذ</button>
-                                </div>
-                            )}
-
-                            {/* COMMUNITY & LEARN */}
-                            {(subView.id.includes('comm') || subView.id.includes('learn')) && (
-                                <div>
-                                    {subView.id === 'comm_chat' ? (
-                                        <div style={{height:200, background:'#0a0e17', borderRadius:10, padding:10, marginBottom:10, overflowY:'auto'}}>
-                                            <div style={{marginBottom:5}}><b style={{color:'var(--primary)'}}>User1:</b> السلام عليكم</div>
-                                            <div style={{marginBottom:5}}><b style={{color:'orange'}}>Admin:</b> وعليكم السلام</div>
-                                        </div>
-                                    ) : (
-                                        <div style={{marginBottom:15}}>محتوى تعليمي تفاعلي...</div>
-                                    )}
-                                    <input type="text" placeholder="اكتب مشاركتك هنا..." />
-                                    <button className="btn-primary" style={{width:'100%', padding:12, borderRadius:10}} onClick={()=>btnAction('تم الإرسال')}>إرسال</button>
-                                </div>
-                            )}
-
-                            {/* REWARDS */}
-                            {subView.id.includes('rew') && (
-                                <div style={{textAlign:'center'}}>
-                                    <div style={{fontSize:40, marginBottom:10}}>🎁</div>
-                                    <h3>مكافأتك جاهزة</h3>
-                                    <p>أكمل المهام للحصول على المزيد</p>
-                                    <button className="btn-primary" style={{width:'100%', padding:15, borderRadius:12}} onClick={()=>btnAction('تم جمع المكافأة')}>جمع الآن</button>
-                                </div>
-                            )}
-
-                        </div>
-                    </div>
-                );
-            };
-
-            // --- MAIN RENDER ---
-            if (isLocked) {
-                return (
-                    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0e17' }}>
-                        <div style={{ fontSize: 60, marginBottom: 20 }}>🔒</div>
-                        <h2 style={{ marginBottom: 40 }}>أدخل رمز الحماية</h2>
-                        <div style={{ display: 'flex', gap: 20, marginBottom: 50 }}>
-                            {[1,2,3,4].map(i => <div key={i} className={`pin-dot ${pin.length >= i ? 'filled' : ''}`}></div>)}
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                            {[1,2,3,4,5,6,7,8,9].map(n => <div key={n} className="num-pad-btn" onClick={() => handlePin(n)}>{n}</div>)}
-                            <div className="num-pad-btn" style={{background:'transparent'}}></div>
-                            <div className="num-pad-btn" onClick={() => handlePin(0)}>0</div>
-                            <div className="num-pad-btn" onClick={() => setPin(pin.slice(0, -1))}>⌫</div>
-                        </div>
-                        <p style={{ marginTop: 30, color: '#888', fontSize: 12 }}>الرمز الافتراضي: 1234</p>
-                    </div>
-                );
-            }
-
-            return (
-                <div className={theme}>
-                    {toast && <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: '#fff', color: '#000', padding: '10px 20px', borderRadius: 50, zIndex: 9999, fontWeight: 'bold', boxShadow: '0 5px 20px rgba(0,0,0,0.3)', display:'flex', gap:10 }}><span>{toast.icon}</span>{toast.msg}</div>}
-
-                    {/* Header */}
-                    <header style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, rgba(19,25,43,0.9), transparent)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div onClick={() => setModal('settings')} style={{ width: 40, height: 40, borderRadius: '50%', background: '#2d3446', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--primary)' }}>👤</div>
-                            <div>
-                                <div style={{ fontSize: 12, color: '#888' }}>مرحباً بك،</div>
-                                <div style={{ fontWeight: 'bold' }}>Ahmed Ali</div>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 15 }}>
-                            <div onClick={() => setModal('qr')} style={{ fontSize: 24, cursor: 'pointer' }}>📷</div>
-                            <div onClick={() => setModal('notifications')} style={{ fontSize: 24, cursor: 'pointer', position:'relative' }}>
-                                🔔 <span style={{position:'absolute', top:0, right:0, width:8, height:8, background:'red', borderRadius:'50%'}}></span>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Content Area */}
-                    <div style={{ padding: '0 20px 20px 20px' }}>
-                        
-                        {/* 1. If SubView is active, show it */}
-                        {subView ? (
-                            renderSubViewContent()
-                        ) : (
-                            /* 2. Else, show the standard Tabs */
-                            <div className="fade-in">
-                                
-                                {/* HOME TAB SPECIFIC LAYOUT */}
-                                {activeTab === 'home' && (
-                                    <>
-                                        <div style={{ display: 'flex', gap: 15, overflowX: 'auto', marginBottom: 20, scrollbarWidth: 'none' }}>
-                                            <div style={{ textAlign: 'center' }} onClick={() => setSubView({id:'rew_wheel', title:'عجلة الحظ'})}>
-                                                <div className="story-ring" style={{border: '2px dashed var(--primary)', background: 'transparent'}}>
-                                                    <div className="story-img" style={{background: 'var(--primary)', color: '#000'}}>🎡</div>
-                                                </div>
-                                                <div style={{ fontSize: 11, marginTop: 5 }}>عجلة الحظ</div>
-                                            </div>
-                                            {[{ id: 1, title: 'عرض خاص', icon: '🎁' }, { id: 2, title: 'أخبار BTC', icon: '📈' }, { id: 3, title: 'الفائزون', icon: '🏆' }].map(s => (
-                                                <div key={s.id} style={{ textAlign: 'center' }} onClick={() => setModal('story')}>
-                                                    <div className="story-ring"><div className="story-img">{s.icon}</div></div>
-                                                    <div style={{ fontSize: 11, marginTop: 5 }}>{s.title}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div style={{ background: 'linear-gradient(135deg, var(--card), #0a0e17)', padding: 25, borderRadius: 25, border: '1px solid rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden', marginBottom: 20 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                                                <span style={{color:'#888', fontSize:14}}>إجمالي الأصول</span>
-                                                <span onClick={() => setShowBalance(!showBalance)} style={{cursor:'pointer'}}>{showBalance ? '👁️' : '🙈'}</span>
-                                            </div>
-                                            <h1 style={{ margin: '0 0 20px 0', fontSize: 36 }}>{showBalance ? `$${balance.toFixed(2)}` : '****'}</h1>
-                                            <div style={{ display: 'flex', gap: 10 }}>
-                                                <button className="btn-primary" onClick={() => setModal('deposit')} style={{ flex: 1, padding: 15, borderRadius: 15 }}>إيداع</button>
-                                                <button className="btn-primary" onClick={() => setModal('p2p')} style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color:'#fff', padding: 15, borderRadius: 15 }}>إرسال</button>
-                                            </div>
-                                        </div>
-
-                                        <h3 style={{marginBottom:15}}>المحفظة</h3>
-                                        {[{n:'Bitcoin',s:'BTC',p:43500,h:0.4,c:2.5},{n:'Ethereum',s:'ETH',p:2240,h:4.2,c:-1.2},{n:'Solana',s:'SOL',p:98,h:150,c:5.4}].map((c, i) => (
-                                            <div key={i} onClick={()=>setSubView({id:'market_live', title:c.n})} className="glass" style={{ display: 'flex', justifyContent: 'space-between', padding: 15, borderRadius: 15, marginBottom: 10, alignItems: 'center', cursor:'pointer' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#2d3446', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight:'bold' }}>{c.s[0]}</div>
-                                                    <div>
-                                                        <div style={{ fontWeight: 'bold' }}>{c.n}</div>
-                                                        <div style={{ fontSize: 12, color: '#888' }}>{c.h} {c.s}</div>
-                                                    </div>
-                                                </div>
-                                                <div style={{ textAlign: 'left' }}>
-                                                    <div style={{ fontWeight: 'bold' }}>${(c.p * c.h).toLocaleString()}</div>
-                                                    <div style={{ fontSize: 12, color: c.c > 0 ? '#00d4aa' : '#ff7675' }}>{c.c > 0 ? '+' : ''}{c.c}%</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </>
-                                )}
-
-                                {/* OTHER TABS GRID */}
-                                {features[activeTab] && (
-                                    <>
-                                        <h2 style={{ fontSize: 24, marginBottom: 20 }}>
-                                            {tabs.find(t => t.id === activeTab).icon} {tabs.find(t => t.id === activeTab).label}
-                                        </h2>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-                                            {features[activeTab].map((f, i) => (
-                                                <div key={i} onClick={() => setSubView({id: f.id, title: f.t})} className="glass" style={{ padding: 20, borderRadius: 20, textAlign: 'center', cursor: 'pointer', transition: '0.2s', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                                    <div style={{ fontSize: 32, marginBottom: 10 }}>{f.i}</div>
-                                                    <div style={{ fontWeight: 'bold' }}>{f.t}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                    </div>
-
-                    {/* --- MODALS (Overlays) --- */}
-                    {(modal === 'deposit' || modal === 'p2p') && (
-                        <div className="modal-overlay" onClick={() => setModal(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <h3>{modal === 'deposit' ? '📥 إيداع' : '💸 إرسال P2P'}</h3>
-                                <input type="number" placeholder="المبلغ (USD)" style={{fontSize:18}} />
-                                {modal === 'p2p' && <input type="email" placeholder="بريد المستلم" />}
-                                <button className="btn-primary" onClick={() => {setModal(null); showToast('تمت العملية بنجاح'); setBalance(b=>b+100);}} style={{width:'100%', padding:15, borderRadius:12}}>تأكيد</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {modal === 'story' && (
-                        <div className="modal-overlay modal-center" onClick={() => setModal(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()} style={{background: 'linear-gradient(135deg, #FF6B6B, #556270)', height: 400, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
-                                <h1>🔥</h1>
-                                <h2>خبر عاجل!</h2>
-                                <p>السوق يشهد ارتفاعاً كبيراً اليوم.</p>
-                                <button onClick={() => setModal(null)} style={{background:'rgba(0,0,0,0.5)', border:'none', color:'white', padding:'10px 20px', borderRadius:20}}>إغلاق</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {modal === 'settings' && (
-                         <div className="modal-overlay" onClick={() => setModal(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <h3>⚙️ الإعدادات</h3>
-                                <div style={{display:'flex', gap:10, marginBottom:20}}>
-                                    {['', 'theme-blue', 'theme-purple', 'theme-gold'].map(t => <div key={t} onClick={() => handleTheme(t)} style={{width:30, height:30, borderRadius:'50%', background: t===''?'#00d4aa':t==='theme-blue'?'#2980b9':t==='theme-purple'?'#9b59b6':'#f1c40f', border:'2px solid white'}}></div>)}
-                                </div>
-                                <div className="glass" style={{borderRadius:15}}>
-                                    <div style={{padding:15}} onClick={() => window.location.reload()}>تسجيل الخروج</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                     
-                    {modal === 'qr' && (
-                        <div style={{position:'fixed', inset:0, background:'#000', zIndex:6000, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                            <div style={{width:250, height:250, border:'2px solid var(--primary)', position:'relative', borderRadius:20}}>
-                                <div style={{position:'absolute', top:0, left:0, width:'100%', height:2, background:'var(--primary)', animation:'slideIn 2s infinite alternate'}}></div>
-                            </div>
-                            <button onClick={() => setModal(null)} style={{marginTop:30, padding:'10px 30px', background:'#333', color:'#fff', border:'none', borderRadius:20}}>إلغاء</button>
-                        </div>
-                    )}
-
-                    {modal === 'notifications' && (
-                        <div className="modal-overlay" onClick={() => setModal(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <h3>🔔 الإشعارات</h3>
-                                <div style={{padding:15, borderBottom:'1px solid #333'}}>تم استلام إيداعك $200</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Navigation */}
-                    <nav 
-                        ref={navRef}
-                        className="glass scroll-hide" 
-                        style={{ 
-                            position: 'fixed', bottom: 0, left: 0, width: '100%', 
-                            display: 'flex', overflowX: 'auto', padding: '10px 0', 
-                            zIndex: 100, backdropFilter: 'blur(20px)', background: 'rgba(10, 14, 23, 0.95)',
-                            whiteSpace: 'nowrap', justifyContent: 'flex-start' 
-                        }}
-                    >
-                        {tabs.map(t => (
-                            <div 
-                                key={t.id} 
-                                onClick={() => handleTabClick(t.id)} 
-                                style={{ 
-                                    minWidth: '80px', 
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, 
-                                    color: activeTab === t.id ? 'var(--primary)' : '#576071', 
-                                    cursor: 'pointer', transition: '0.2s',
-                                    opacity: activeTab === t.id ? 1 : 0.6
-                                }}
-                            >
-                                <span style={{ fontSize: 24, transform: activeTab === t.id ? 'scale(1.1)' : 'scale(1)' }}>{t.icon}</span>
-                                <span style={{ fontSize: 10, fontWeight: 'bold' }}>{t.label}</span>
-                                {activeTab === t.id && <div style={{width: 4, height: 4, background: 'var(--primary)', borderRadius: '50%'}}></div>}
-                            </div>
-                        ))}
-                        <div style={{minWidth: 20}}></div> 
-                    </nav>
-
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required>
+                    <span class="input-icon">📧</span>
                 </div>
-            );
+            </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="أدخل كلمة المرور" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <label class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span>تذكرني</span>
+                </label>
+                <a href="#" class="forgot-password" onclick="handleForgotPassword(event)">نسيت كلمة المرور؟</a>
+            </div>
+
+            <button type="submit" class="login-btn">تسجيل الدخول</button>
+        </form>
+
+        <div class="divider">
+            <span>أو تسجيل الدخول عبر</span>
+        </div>
+
+        <div class="social-login">
+            <button class="social-btn" onclick="handleSocialLogin('google')">
+                <span style="color: #DB4437;">G</span>
+                <span>Google</span>
+            </button>
+        </div>
+
+        <div class="signup-link">
+            ليس لديك حساب؟ <a href="#" onclick="handleSignup(event)">سجل الآن</a>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<CryptoVaultV6 />);
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            
+            // Simulate login process
+            showMessage('success', 'جاري تسجيل الدخول...');
+            
+            setTimeout(() => {
+                // Simulate successful login
+                showMessage('success', `تم تسجيل الدخول بنجاح! مرحباً ${email}`);
+                
+                // Here you would typically send data to your backend
+                console.log('Login data:', { email, password, remember });
+                
+                // Redirect or perform action after successful login
+                // window.location.href = '/dashboard';
+            }, 1500);
+        });
+
+        // Show messages
+        function showMessage(type, message) {
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            successDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            if (type === 'success') {
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            } else {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Handle forgot password
+        function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            
+            if (!email) {
+                showMessage('error', 'الرجاء إدخال البريد الإلكتروني أولاً');
+                document.getElementById('email').focus();
+                return;
+            }
+            
+            showMessage('success', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني');
+        }
+
+        // Handle social login
+        function handleSocialLogin(provider) {
+            showMessage('success', `جاري تسجيل الدخول عبر ${provider === 'google' ? 'Google' : 'Facebook'}...`);
+            
+            // Here you would typically redirect to OAuth provider
+            console.log(`Social login with: ${provider}`);
+        }
+
+        // Handle signup
+        function handleSignup(e) {
+            e.preventDefault();
+            showMessage('success', 'جاري التوجيه إلى صفحة التسجيل...');
+            
+            // Redirect to signup page
+            // window.location.href = '/signup';
+        }
+
+        // Add input validation feedback
+        const inputs = document.querySelectorAll('input[type="email"], input[type="password"]');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value && !this.validity.valid) {
+                    this.style.borderColor = '#dc3545';
+                } else if (this.value) {
+                    this.style.borderColor = '#28a745';
+                }
+            });
+            
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#667eea';
+            });
+        });
     </script>
 </body>
 </html>
