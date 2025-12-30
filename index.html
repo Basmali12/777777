@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CryptoVault V3 Ultra</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #00d4aa; /* Default */
+            --bg: #0a0e17;
+            --card: #13192b;
+            --text: #ffffff;
+            --danger: #ff7675;
+        }
+
+        /* Themes */
+        .theme-blue { --primary: #2980b9; }
+        .theme-gold { --primary: #f1c40f; }
+        .theme-purple { --primary: #9b59b6; }
+        .theme-red { --primary: #e74c3c; }
+
+        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Cairo', sans-serif; background-color: #000; color: white; overflow-x: hidden; }
+
+        #root {
+            width: 100%; max-width: 480px; margin: 0 auto; background-color: var(--bg); position: relative;
+            min-height: 100vh; padding-bottom: 90px; box-shadow: 0 0 20px rgba(255,255,255,0.05);
+        }
+
+        /* Animations */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
+        .modal-content { background: #1a2238; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-top: 1px solid rgba(255,255,255,0.1); }
+        .modal-center { align-items: center; }
+        .modal-center .modal-content { border-radius: 24px; width: 90%; max-width: 340px; }
+
+        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+        .btn-primary { background: var(--primary); color: #000; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .btn-primary:active { transform: scale(0.95); }
+
+        /* Story Circle */
+        .story-ring { width: 64px; height: 64px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .story-img { width: 100%; height: 100%; background: #2d3446; border-radius: 50%; border: 3px solid var(--bg); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+        /* Pin Pad */
+        .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--primary); transition: 0.2s; }
+        .pin-dot.filled { background: var(--primary); }
+        .num-pad-btn { width: 70px; height: 70px; border-radius: 35px; background: rgba(255,255,255,0.05); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .num-pad-btn:active { background: var(--primary); color: #000; }
+
+        /* Wheel */
+        .wheel-container { width: 250px; height: 250px; border-radius: 50%; border: 5px solid var(--primary); position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0.9, 0.2, 1); background: conic-gradient( #ff7675 0deg 60deg, #74b9ff 60deg 120deg, #55efc4 120deg 180deg, #fdcb6e 180deg 240deg, #a29bfe 240deg 300deg, #ffeaa7 300deg 360deg ); }
+        .wheel-arrow { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid white; z-index: 10; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function CryptoVaultV3() {
+            // --- Core State ---
+            const [isLocked, setIsLocked] = useState(true);
+            const [pin, setPin] = useState('');
+            const [activeTab, setActiveTab] = useState('home');
+            const [balance, setBalance] = useState(1250.00);
+            const [theme, setTheme] = useState(''); // Default Green
+            const [lang, setLang] = useState('ar');
+            const [showBalance, setShowBalance] = useState(true);
+
+            // --- Features State ---
+            const [modal, setModal] = useState(null); // 'deposit', 'p2p', 'wheel', 'settings', 'qr', 'story', 'support'
+            const [toast, setToast] = useState(null);
+            const [wheelRotation, setWheelRotation] = useState(0);
+            const [notifications, setNotifications] = useState([]);
+            const [p2pUser, setP2pUser] = useState('');
+            const [energy, setEnergy] = useState(100);
+
+            // --- Mock Data ---
+            const stories = [
+                { id: 1, title: 'عرض خاص', icon: '🎁', color: '#ff7675' },
+                { id: 2, title: 'أخبار BTC', icon: '📈', color: '#74b9ff' },
+                { id: 3, title: 'الفائزون', icon: '🏆', color: '#fdcb6e' },
+                { id: 4, title: 'تحديث', icon: '⚡', color: '#a29bfe' },
+            ];
+
+            const coins = [
+                { name: 'Bitcoin', symbol: 'BTC', price: 43500, change: 2.5, hold: 0.4 },
+                { name: 'Ethereum', symbol: 'ETH', price: 2240, change: -1.2, hold: 4.2 },
+                { name: 'Solana', symbol: 'SOL', price: 98, change: 5.4, hold: 150 },
+            ];
+
+            // --- Effects ---
+            useEffect(() => {
+                // Fake shake to hide balance
+                let shakeHandler = () => setShowBalance(prev => !prev);
+                window.addEventListener('devicemotion', (e) => {
+                    if (e.acceleration.x > 15) shakeHandler();
+                });
+                
+                // Energy Loop
+                const timer = setInterval(() => setEnergy(e => e < 100 ? e + 0.5 : 100), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            // --- Logic Functions ---
+            const handlePin = (num) => {
+                if (pin.length < 4) {
+                    const newPin = pin + num;
+                    setPin(newPin);
+                    if (newPin === '1234') { // Mock PIN
+                        setTimeout(() => setIsLocked(false), 300);
+                    } else if (newPin.length === 4) {
+                        setTimeout(() => { setPin(''); showToast('رمز خاطئ!', '❌'); }, 300);
+                    }
+                }
+            };
+
+            const spinWheel = () => {
+                if (energy < 20) { showToast('لا توجد طاقة كافية', '⚡'); return; }
+                const deg = Math.floor(5000 + Math.random() * 5000);
+                setWheelRotation(deg);
+                setEnergy(e => e - 20);
+                setTimeout(() => {
+                    showToast('مبروك! ربحت 10 USDT', '🎉');
+                    setBalance(b => b + 10);
+                }, 4000);
+            };
+
+            const showToast = (msg, icon='✅') => {
+                setToast({msg, icon});
+                if(navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const handleTheme = (colorClass) => {
+                setTheme(colorClass);
+                document.documentElement.className = colorClass;
+            };
+
+            // --- SCREENS ---
+
+            // 1. PIN SCREEN
+            if (isLocked) {
+                return (
+                    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0e17' }}>
+                        <div style={{ fontSize: 60, marginBottom: 20 }}>🔒</div>
+                        <h2 style={{ marginBottom: 40 }}>أدخل رمز الحماية</h2>
+                        <div style={{ display: 'flex', gap: 20, marginBottom: 50 }}>
+                            {[1,2,3,4].map(i => <div key={i} className={`pin-dot ${pin.length >= i ? 'filled' : ''}`}></div>)}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                            {[1,2,3,4,5,6,7,8,9].map(n => <div key={n} className="num-pad-btn" onClick={() => handlePin(n)}>{n}</div>)}
+                            <div className="num-pad-btn" style={{background:'transparent'}}></div>
+                            <div className="num-pad-btn" onClick={() => handlePin(0)}>0</div>
+                            <div className="num-pad-btn" onClick={() => setPin(pin.slice(0, -1))}>⌫</div>
+                        </div>
+                        <p style={{ marginTop: 30, color: '#888', fontSize: 12 }}>الرمز الافتراضي: 1234</p>
+                    </div>
+                );
+            }
+
+            // 2. MAIN APP
+            return (
+                <div className={theme}>
+                    {/* Toast */}
+                    {toast && <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: '#fff', color: '#000', padding: '10px 20px', borderRadius: 50, zIndex: 9999, fontWeight: 'bold', boxShadow: '0 5px 20px rgba(0,0,0,0.3)', display:'flex', gap:10 }}><span>{toast.icon}</span>{toast.msg}</div>}
+
+                    {/* Header */}
+                    <header style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(to bottom, rgba(19,25,43,0.9), transparent)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div onClick={() => setModal('settings')} style={{ width: 40, height: 40, borderRadius: '50%', background: '#2d3446', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--primary)' }}>👤</div>
+                            <div>
+                                <div style={{ fontSize: 12, color: '#888' }}>مرحباً بك،</div>
+                                <div style={{ fontWeight: 'bold' }}>Ahmed Ali</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 15 }}>
+                            <div onClick={() => setModal('qr')} style={{ fontSize: 24, cursor: 'pointer' }}>📷</div>
+                            <div onClick={() => setModal('notifications')} style={{ fontSize: 24, cursor: 'pointer', position:'relative' }}>
+                                🔔 <span style={{position:'absolute', top:0, right:0, width:8, height:8, background:'red', borderRadius:'50%'}}></span>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Stories */}
+                    {activeTab === 'home' && (
+                        <div style={{ display: 'flex', gap: 15, padding: '0 20px', overflowX: 'auto', marginBottom: 20, scrollbarWidth: 'none' }}>
+                            <div style={{ textAlign: 'center' }} onClick={() => setModal('wheel')}>
+                                <div className="story-ring" style={{border: '2px dashed var(--primary)', background: 'transparent'}}>
+                                    <div className="story-img" style={{background: 'var(--primary)', color: '#000'}}>🎡</div>
+                                </div>
+                                <div style={{ fontSize: 11, marginTop: 5 }}>عجلة الحظ</div>
+                            </div>
+                            {stories.map(s => (
+                                <div key={s.id} style={{ textAlign: 'center' }} onClick={() => showToast('جاري تحميل القصة...', '⏳')}>
+                                    <div className="story-ring">
+                                        <div className="story-img">{s.icon}</div>
+                                    </div>
+                                    <div style={{ fontSize: 11, marginTop: 5 }}>{s.title}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Content Body */}
+                    <div style={{ padding: '0 20px 100px 20px' }}>
+                        
+                        {/* HOME */}
+                        {activeTab === 'home' && (
+                            <div className="fade-in">
+                                {/* Balance Card */}
+                                <div style={{ background: 'linear-gradient(135deg, var(--card), #0a0e17)', padding: 25, borderRadius: 25, border: '1px solid rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden', marginBottom: 20 }}>
+                                    <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'var(--primary)', opacity: 0.1, borderRadius: '50%', filter: 'blur(30px)' }}></div>
+                                    
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                                        <span style={{color:'#888', fontSize:14}}>إجمالي الأصول</span>
+                                        <span onClick={() => setShowBalance(!showBalance)} style={{cursor:'pointer'}}>{showBalance ? '👁️' : '🙈'}</span>
+                                    </div>
+                                    <h1 style={{ margin: '0 0 20px 0', fontSize: 36 }}>{showBalance ? `$${balance.toFixed(2)}` : '****'}</h1>
+                                    
+                                    <div style={{ display: 'flex', gap: 10 }}>
+                                        <button className="btn-primary" onClick={() => setModal('deposit')} style={{ flex: 1, padding: 15, borderRadius: 15 }}>إيداع</button>
+                                        <button className="btn-primary" onClick={() => setModal('p2p')} style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color:'#fff', padding: 15, borderRadius: 15 }}>إرسال</button>
+                                        <button className="btn-primary" onClick={() => showToast('قريباً', '🔁')} style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color:'#fff', padding: 15, borderRadius: 15 }}>تحويل</button>
+                                    </div>
+                                </div>
+
+                                {/* Sentiment Meter */}
+                                <div className="glass" style={{ padding: 15, borderRadius: 15, marginBottom: 20, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                    <div>
+                                        <div style={{fontWeight:'bold', fontSize:14}}>مؤشر السوق</div>
+                                        <div style={{fontSize:12, color:'#888'}}>الخوف والطمع</div>
+                                    </div>
+                                    <div style={{textAlign:'left'}}>
+                                        <div style={{color: '#00d4aa', fontWeight:'bold'}}>75 - طمع 🤑</div>
+                                        <div style={{width: 100, height:6, background:'#333', borderRadius:3, marginTop:5}}>
+                                            <div style={{width:'75%', height:'100%', background:'#00d4aa', borderRadius:3}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Coins List */}
+                                <h3 style={{marginBottom:15}}>المحفظة</h3>
+                                {coins.map((c, i) => (
+                                    <div key={i} className="glass" style={{ display: 'flex', justifyContent: 'space-between', padding: 15, borderRadius: 15, marginBottom: 10, alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#2d3446', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight:'bold' }}>{c.symbol[0]}</div>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold' }}>{c.name}</div>
+                                                <div style={{ fontSize: 12, color: '#888' }}>{c.hold} {c.symbol}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'left' }}>
+                                            <div style={{ fontWeight: 'bold' }}>${(c.price * c.hold).toLocaleString()}</div>
+                                            <div style={{ fontSize: 12, color: c.change > 0 ? '#00d4aa' : '#ff7675' }}>{c.change > 0 ? '+' : ''}{c.change}%</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* OTHER TABS (Simplified placeholders) */}
+                        {activeTab === 'market' && <div style={{textAlign:'center', marginTop:100}}><h1>📊 السوق</h1><p>جاري تحميل البيانات الحية...</p></div>}
+                        {activeTab === 'swap' && <div style={{textAlign:'center', marginTop:100}}><h1>🔁 تبادل</h1><p>واجهة التحويل الفوري</p></div>}
+                        
+                    </div>
+
+                    {/* --- MODALS --- */}
+
+                    {/* Spin Wheel Modal */}
+                    {modal === 'wheel' && (
+                        <div className="modal-overlay modal-center" onClick={() => setModal(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()} style={{textAlign:'center', overflow:'hidden'}}>
+                                <h3>عجلة الحظ اليومية 🎡</h3>
+                                <p style={{color:'#888', fontSize:12}}>الطاقة: {Math.floor(energy)}% ⚡</p>
+                                <div style={{display:'flex', justifyContent:'center', margin:'30px 0'}}>
+                                    <div className="wheel-container" style={{ transform: `rotate(${wheelRotation}deg)` }}></div>
+                                    <div className="wheel-arrow"></div>
+                                </div>
+                                <button className="btn-primary" onClick={spinWheel} style={{width:'100%', padding:15, borderRadius:15, fontSize:18}}>أدر العجلة! (-20⚡)</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* P2P Modal */}
+                    {modal === 'p2p' && (
+                        <div className="modal-overlay" onClick={() => setModal(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <h3>💸 إرسال أموال (P2P)</h3>
+                                <div style={{marginBottom:15}}>
+                                    <label style={{display:'block', marginBottom:8, fontSize:12, color:'#888'}}>البريد الإلكتروني للمستلم</label>
+                                    <input type="email" placeholder="user@example.com" value={p2pUser} onChange={e => setP2pUser(e.target.value)} style={{width:'100%', padding:15, borderRadius:12, background:'#0a0e17', border:'1px solid #333', color:'#fff'}} />
+                                    {p2pUser.includes('@') && <div style={{fontSize:12, color:'#00d4aa', marginTop:5}}>✅ مستخدم موجود: Ahmed Ali</div>}
+                                </div>
+                                <div style={{marginBottom:15}}>
+                                    <label style={{display:'block', marginBottom:8, fontSize:12, color:'#888'}}>المبلغ</label>
+                                    <input type="number" placeholder="0.00" style={{width:'100%', padding:15, borderRadius:12, background:'#0a0e17', border:'1px solid #333', color:'#fff'}} />
+                                </div>
+                                <h4 style={{marginBottom:10}}>المستفيدين المفضلين</h4>
+                                <div style={{display:'flex', gap:10, marginBottom:20}}>
+                                    {[1,2,3].map(i => <div key={i} style={{width:50, height:50, borderRadius:'50%', background:'#2d3446', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20}}>👤</div>)}
+                                </div>
+                                <button className="btn-primary" onClick={() => {setModal(null); showToast('تم الإرسال بنجاح');}} style={{width:'100%', padding:15, borderRadius:12}}>تأكيد الإرسال</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Settings Modal (Themes & Features) */}
+                    {modal === 'settings' && (
+                        <div className="modal-overlay" onClick={() => setModal(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <h3 style={{marginTop:0}}>⚙️ الإعدادات</h3>
+                                
+                                <h5 style={{marginBottom:10}}>لون الثيم</h5>
+                                <div style={{display:'flex', gap:10, marginBottom:20}}>
+                                    <div onClick={() => handleTheme('')} style={{width:30, height:30, borderRadius:'50%', background:'#00d4aa', border:'2px solid white'}}></div>
+                                    <div onClick={() => handleTheme('theme-blue')} style={{width:30, height:30, borderRadius:'50%', background:'#2980b9'}}></div>
+                                    <div onClick={() => handleTheme('theme-purple')} style={{width:30, height:30, borderRadius:'50%', background:'#9b59b6'}}></div>
+                                    <div onClick={() => handleTheme('theme-gold')} style={{width:30, height:30, borderRadius:'50%', background:'#f1c40f'}}></div>
+                                </div>
+
+                                <div className="glass" style={{borderRadius:15, overflow:'hidden', marginBottom:20}}>
+                                    <div style={{padding:15, borderBottom:'1px solid #333', display:'flex', justifyContent:'space-between'}} onClick={() => showToast('تم التفعيل', '🌙')}><span>توفير الطاقة (OLED)</span><span>🔘</span></div>
+                                    <div style={{padding:15, borderBottom:'1px solid #333', display:'flex', justifyContent:'space-between'}} onClick={() => showToast('اللغة العربية مفعلة')}><span>اللغة / Language</span><span>AR</span></div>
+                                    <div style={{padding:15, display:'flex', justifyContent:'space-between'}} onClick={() => window.location.reload()}><span>تسجيل الخروج</span><span>🚪</span></div>
+                                </div>
+
+                                <div style={{padding:15, background:'#2d3446', borderRadius:10, textAlign:'center'}}>
+                                    <div style={{fontSize:12}}>تثبيت التطبيق على الشاشة الرئيسية؟</div>
+                                    <button style={{marginTop:5, background:'none', border:'none', color:'var(--primary)', fontWeight:'bold'}}>تثبيت الآن (PWA)</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* QR Scanner Mock */}
+                    {modal === 'qr' && (
+                        <div style={{position:'fixed', inset:0, background:'#000', zIndex:6000, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                            <div style={{width:250, height:250, border:'2px solid var(--primary)', position:'relative', borderRadius:20}}>
+                                <div style={{position:'absolute', top:0, left:0, width:'100%', height:2, background:'var(--primary)', animation:'slideUp 2s infinite alternate'}}></div>
+                            </div>
+                            <p style={{marginTop:20}}>وجه الكاميرا نحو رمز QR</p>
+                            <button onClick={() => setModal(null)} style={{marginTop:30, padding:'10px 30px', background:'#333', color:'#fff', border:'none', borderRadius:20}}>إلغاء</button>
+                        </div>
+                    )}
+
+                    {/* Bottom Nav */}
+                    <nav className="glass" style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: 440, borderRadius: 20, display: 'flex', justifyContent: 'space-around', padding: '15px 0', zIndex: 100 }}>
+                        {['home', 'market', 'swap', 'wallet'].map(t => (
+                            <div key={t} onClick={() => setActiveTab(t)} style={{ color: activeTab === t ? 'var(--primary)' : '#576071', fontSize: 24, cursor: 'pointer', transition: '0.2s', transform: activeTab === t ? 'scale(1.1)' : 'scale(1)' }}>
+                                {t === 'home' ? '🏠' : t === 'market' ? '📊' : t === 'swap' ? '🔁' : '💼'}
+                            </div>
+                        ))}
+                    </nav>
+
+                    {/* Deposit Modal Placeholder */}
+                    {modal === 'deposit' && (
+                        <div className="modal-overlay" onClick={() => setModal(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <h3>📥 إيداع سريع</h3>
+                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
+                                    <button style={{padding:20, borderRadius:15, border:'none', background:'#2d3446', color:'#fff'}}>Crypto</button>
+                                    <button style={{padding:20, borderRadius:15, border:'none', background:'#2d3446', color:'#fff'}}>Visa/Master</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CryptoVaultV3 />);
+    </script>
+</body>
+</html>
